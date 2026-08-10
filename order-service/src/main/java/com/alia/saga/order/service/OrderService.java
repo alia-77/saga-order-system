@@ -1,7 +1,9 @@
 package com.alia.saga.order.service;
 
+import com.alia.saga.order.kafka.OrderEventProducer;
 import com.alia.saga.order.model.Order;
 import com.alia.saga.order.repository.OrderRepository;
+import com.alia.saga.shared.events.OrderCreatedEvent;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -10,13 +12,27 @@ import java.util.List;
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final OrderEventProducer orderEventProducer;
 
-    public OrderService(OrderRepository orderRepository) {
+    public OrderService(
+            OrderRepository orderRepository,
+            OrderEventProducer orderEventProducer) {
         this.orderRepository = orderRepository;
+        this.orderEventProducer = orderEventProducer;
     }
 
     public Order createOrder(Order order) {
-        return orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
+
+        OrderCreatedEvent event = new OrderCreatedEvent(
+                savedOrder.getId(),
+                savedOrder.getProductName(),
+                savedOrder.getQuantity()
+        );
+
+        orderEventProducer.publishOrderCreated(event);
+
+        return savedOrder;
     }
 
     public List<Order> getAllOrders() {
