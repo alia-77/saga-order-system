@@ -28,18 +28,16 @@ public class InventoryService {
     }
 
     public boolean reserveInventory(String productName, Integer quantity) {
-        List<Inventory> inventoryList = inventoryRepository.findAll();
+        Inventory inventory = inventoryRepository.findByProductName(productName)
+                .orElse(null);
 
-        for (Inventory inventory : inventoryList) {
-            if (inventory.getProductName().equals(productName)
-                    && inventory.getQuantity() >= quantity) {
-
-                inventory.setQuantity(inventory.getQuantity() - quantity);
-                inventoryRepository.save(inventory);
-                return true;
-            }
+        if (inventory == null || inventory.getQuantity() < quantity) {
+            return false;
         }
 
-        return false;
+        inventory.setQuantity(inventory.getQuantity() - quantity);
+        inventoryRepository.save(inventory);
+
+        return true;
     }
 }
