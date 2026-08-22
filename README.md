@@ -2,84 +2,73 @@
 
 A distributed order-processing system built with **Java, Spring Boot, PostgreSQL, Apache Kafka, Docker, Kubernetes, and GitHub Actions**.
 
-The project demonstrates a **Saga-based architecture** for coordinating orders across multiple independent microservices while handling distributed transactions, failures, and compensation.
+The project demonstrates a **Saga-based architecture**: coordinating orders across independent microservices, and handling distributed transactions, failures, and compensating actions between them.
+
+## Goal
+
+Build a realistic distributed backend demonstrating microservices architecture, event-driven communication via Kafka, Saga-based distributed transactions with compensation, automated testing, containerization, Kubernetes orchestration, and CI/CD.
+
+The end result should be a complete, testable order-processing workflow where independent services communicate through events, and failures are handled through Saga-based compensation rather than left inconsistent.
 
 ## Architecture
 
-The system is divided into:
-
-- **Order Service** - manages customer orders.
-- **Inventory Service** - manages stock and reservations.
-- **Payment Service** - handles payments.
-- **Shipping Service** - manages shipment processing.
-- **Saga Orchestrator** - coordinates the order workflow and compensation.
-- **Shared Module** - contains shared events and models.
-
-## Current Progress
-
-- Multi-module Maven project
-- Spring Boot microservices
-- REST APIs
-- PostgreSQL persistence
-- Order creation and retrieval
-- Inventory management and reservation
-- Kafka-based Order → Inventory communication
-- JSON event serialization/deserialization
-- Inventory reservation success and failure handling
-- Shared event contracts
-- Postman API testing
-- Environment-based database configuration
-- Basic health endpoints
-- Docker Compose Kafka setup
+- **Order Service** - manages customer orders
+- **Inventory Service** - manages stock and reservations
+- **Payment Service** - processes payments
+- **Shipping Service** - manages shipment processing
+- **Saga Orchestrator** - coordinates the order workflow and compensation
+- **Shared Module** - shared events and models
 
 ## Event Flow
 
-**Current:**
+**Working today:**
 
 ```text
-Order Service
-      ↓
-OrderCreatedEvent
-      ↓
-Kafka
-      ↓
-Inventory Service
-      ↓
-InventoryReservedEvent
-      or
-InventoryReservationFailedEvent
+Order Service -> OrderCreatedEvent -> Kafka
+Kafka -> Inventory Service -> InventoryReservedEvent -> Kafka
+Kafka -> Payment Service -> PaymentCompletedEvent -> Kafka
 ```
 
-**Planned:**
+Inventory failures are also represented through a separate path:
 
 ```text
-Inventory
-    ↓
-Payment
-    ↓
-Shipping
-    ↓
-Order Completed
+Inventory Service -> InventoryReservationFailedEvent -> Kafka
 ```
 
-Failure paths will use compensating actions to maintain consistency across services.
+Payment is currently simulated; a full success/failure mechanism is part of the Saga workflow, still to be built.
 
-## Remaining
+**Planned full flow:**
 
-- Complete Kafka event flows
-- Saga orchestration
-- Compensation and failure handling
-- Payment and shipping integration
-- JUnit 5 and Mockito tests
-- Testcontainers integration tests
-- Dockerize services
-- Kubernetes deployment
-- GitHub Actions CI/CD
-- Monitoring and improved logging
-- OpenAPI/Swagger documentation
-- Final integration testing and project polish
+```text
+Order -> Inventory -> Payment -> Shipping -> Order Completed
+```
 
-## Technology Stack
+Failures will be handled through compensating actions coordinated by the Saga Orchestrator, for example:
+
+```text
+Inventory Reserved -> Payment Failed -> Saga Orchestrator -> Release Inventory
+```
+
+## Current Status
+
+- Multi-module Maven project with independent Spring Boot microservices, REST APIs, and PostgreSQL persistence
+- Order creation/retrieval and inventory reservation implemented
+- Kafka-based communication between Order and Inventory, with shared event contracts (`OrderCreatedEvent`, `InventoryReservedEvent`, `InventoryReservationFailedEvent`, `PaymentCompletedEvent`)
+- Simulated payment processing, triggered by inventory reservation and publishing back to Kafka
+- Docker Compose Kafka setup, environment-based config, basic health endpoints, Postman-tested APIs
+
+## Remaining Work
+
+- Payment failure path (`PaymentFailedEvent`, simulated failures, wiring into the Saga)
+- Shipping event flow (consume `PaymentCompletedEvent`, publish shipment results)
+- Saga Orchestrator (coordinate the full workflow, track progress, trigger next steps)
+- Compensation logic for rollback scenarios (e.g. release inventory on payment failure)
+- Automated testing (JUnit 5, Mockito, Testcontainers, end-to-end Saga tests)
+- Full containerization and Kubernetes deployment
+- CI/CD via GitHub Actions
+- Monitoring, structured logging, and OpenAPI/Swagger documentation
+
+## Tech Stack
 
 - **Backend:** Java 21, Spring Boot, Maven
 - **Database:** PostgreSQL
@@ -90,7 +79,3 @@ Failure paths will use compensating actions to maintain consistency across servi
 - **CI/CD:** GitHub Actions
 - **API Testing:** Postman
 - **API Documentation:** OpenAPI / Swagger
-
-## Project Goal
-
-The goal is to build a realistic distributed backend that demonstrates microservices, event-driven communication, Saga-based distributed transactions, compensating actions, automated testing, containerization, Kubernetes, and CI/CD.
