@@ -1,6 +1,6 @@
-package com.alia.saga.inventory.kafka;
+package com.alia.saga.orchestrator.kafka;
 
-import com.alia.saga.shared.events.OrderCreatedEvent;
+import com.alia.saga.shared.events.PaymentFailedEvent;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -23,20 +23,36 @@ import java.util.Map;
 public class KafkaConfig {
 
     @Bean
-    public ConsumerFactory<String, OrderCreatedEvent> consumerFactory() {
-        JsonDeserializer<OrderCreatedEvent> deserializer =
-                new JsonDeserializer<>(OrderCreatedEvent.class);
+    public ConsumerFactory<String, PaymentFailedEvent> consumerFactory() {
+
+        JsonDeserializer<PaymentFailedEvent> deserializer =
+                new JsonDeserializer<>(PaymentFailedEvent.class);
 
         deserializer.addTrustedPackages(
-                "com.alia.saga.shared.events",
-                "com.alia.saga.shared.commands"
+                "com.alia.saga.shared.events"
         );
 
         Map<String, Object> config = new HashMap<>();
-        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        config.put(ConsumerConfig.GROUP_ID_CONFIG, "inventory-service");
-        config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+
+        config.put(
+                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
+                "localhost:9092"
+        );
+
+        config.put(
+                ConsumerConfig.GROUP_ID_CONFIG,
+                "saga-orchestrator"
+        );
+
+        config.put(
+                ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,
+                "earliest"
+        );
+
+        config.put(
+                ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
+                StringDeserializer.class
+        );
 
         return new DefaultKafkaConsumerFactory<>(
                 config,
@@ -46,10 +62,11 @@ public class KafkaConfig {
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, OrderCreatedEvent>
+    public ConcurrentKafkaListenerContainerFactory<String, PaymentFailedEvent>
     kafkaListenerContainerFactory() {
 
-        ConcurrentKafkaListenerContainerFactory<String, OrderCreatedEvent> factory =
+        ConcurrentKafkaListenerContainerFactory<String, PaymentFailedEvent>
+                factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
 
         factory.setConsumerFactory(consumerFactory());
@@ -59,16 +76,19 @@ public class KafkaConfig {
 
     @Bean
     public ProducerFactory<String, Object> producerFactory() {
+
         Map<String, Object> config = new HashMap<>();
 
         config.put(
                 ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
                 "localhost:9092"
         );
+
         config.put(
                 ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
                 StringSerializer.class
         );
+
         config.put(
                 ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
                 JsonSerializer.class

@@ -48,4 +48,24 @@ public class InventoryService {
 
         return false;
     }
+
+    public void releaseInventory(
+            String productName,
+            Integer quantity
+    ) {
+
+        List<Inventory> inventories =
+                inventoryRepository.findAllByProductName(productName);
+
+        for (Inventory inventory : inventories) {
+
+            inventory.setQuantity(
+                    inventory.getQuantity() + quantity
+            );
+
+            inventoryRepository.save(inventory);
+
+            return;
+        }
+    }
 }

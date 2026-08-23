@@ -1,15 +1,15 @@
-package com.alia.saga.shared.events;
+package com.alia.saga.shared.commands;
 
-public class PaymentFailedEvent {
+public class ReleaseInventoryCommand {
 
     private Long orderId;
     private String productName;
     private Integer quantity;
 
-    public PaymentFailedEvent() {
+    public ReleaseInventoryCommand() {
     }
 
-    public PaymentFailedEvent(
+    public ReleaseInventoryCommand(
             Long orderId,
             String productName,
             Integer quantity

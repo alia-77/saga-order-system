@@ -3,6 +3,7 @@ package com.alia.saga.payment.kafka;
 import com.alia.saga.payment.service.PaymentService;
 import com.alia.saga.shared.events.InventoryReservedEvent;
 import com.alia.saga.shared.events.PaymentCompletedEvent;
+import com.alia.saga.shared.events.PaymentFailedEvent;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
@@ -25,15 +26,37 @@ public class InventoryReservedConsumer {
             groupId = "payment-service"
     )
     public void handleInventoryReserved(InventoryReservedEvent event) {
-        paymentService.processPayment(event);
 
-        paymentEventProducer.publishPaymentCompleted(
-                new PaymentCompletedEvent(event.getOrderId())
-        );
+        boolean paymentSuccessful =
+                event.getOrderId() % 2 != 0;
 
-        System.out.println(
-                "Payment completed for order: "
-                        + event.getOrderId()
-        );
+        if (paymentSuccessful) {
+
+            paymentService.processPayment(event);
+
+            paymentEventProducer.publishPaymentCompleted(
+                    new PaymentCompletedEvent(event.getOrderId())
+            );
+
+            System.out.println(
+                    "Payment completed for order: "
+                            + event.getOrderId()
+            );
+
+        } else {
+
+            paymentEventProducer.publishPaymentFailed(
+                    new PaymentFailedEvent(
+                        event.getOrderId(),
+                        event.getProductName(),
+                        event.getQuantity()
+                        )
+            );
+
+            System.out.println(
+                    "Payment failed for order: "
+                            + event.getOrderId()
+            );
+        }
     }
 }

@@ -1,6 +1,7 @@
 package com.alia.saga.payment.kafka;
 
 import com.alia.saga.shared.events.PaymentCompletedEvent;
+import com.alia.saga.shared.events.PaymentFailedEvent;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +17,14 @@ public class PaymentEventProducer {
     public void publishPaymentCompleted(PaymentCompletedEvent event) {
         kafkaTemplate.send(
                 "payment-completed",
+                event.getOrderId().toString(),
+                event
+        );
+    }
+
+    public void publishPaymentFailed(PaymentFailedEvent event) {
+        kafkaTemplate.send(
+                "payment-failed",
                 event.getOrderId().toString(),
                 event
         );
