@@ -45,10 +45,10 @@ Implemented:
 * Docker Compose Kafka setup and environment-based DB config
 * Basic health endpoints
 * Postman API testing
+* Unit tests (JUnit 5, Mockito) across order, inventory, payment, shipping, and the saga orchestrator
 
 ## Remaining Work
 
-* Automated unit tests (JUnit 5, Mockito)
 * Integration testing with Testcontainers
 * More comprehensive end-to-end Saga tests
 * Full Docker containerization of all services
@@ -72,8 +72,6 @@ saga-order-system/
 ├── shipping-service/
 ├── saga-orchestrator/
 ├── shared/
-├── docs/
-├── k8s/
 ├── docker-compose.yml
 └── pom.xml
 ```
